@@ -32,11 +32,13 @@ function generateClient(obj, endpointName, baseUrl) {
         name: endpointName,
         url: component.$.taffy_uri,
         arguments: component.$.taffy_uri.split('/').filter(startsWithBracket).map(stripBrackets),
-        verbs: component.cffunction.map(func => ({
-                name: func.$.name,
-                arguments: !func.cfargument ? [] : func.cfargument.map(item => item.$)
-            })
-        )
+        verbs: component.cffunction
+            .filter(func => func.access === 'public')
+            .map(func => ({
+                    name: func.$.name,
+                    arguments: !func.cfargument ? [] : func.cfargument.map(item => item.$)
+                })
+            )
     };
 
     ////////// Methods
