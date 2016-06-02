@@ -1,0 +1,27 @@
+{
+  "name": "taffy-jsclient",
+  "version": "1.0.0",
+  "description": "A node app to generate a JavaScript client from ColdFusion Taffy .cfc files",
+  "main": "index.js",
+  "repository": "https://github.com/IvanStoilov/taffy-jsclient.git",
+  "scripts": {
+    "test": "node ./node_modules/mocha/bin/mocha"
+  },
+  "keywords": [
+    "taffy",
+    "javascript",
+    "api",
+    "client"
+  ],
+  "author": "Ivan Stoilov",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3",
+    "typescript": "^1.8.10",
+    "fs": "0.0.2"
+  },
+  "dependencies": {
+    "xml2js": "^0.4.16"
+  }
+}
