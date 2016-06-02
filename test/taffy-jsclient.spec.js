@@ -2,8 +2,8 @@ var fs = require('fs');
 var expect = require('chai').expect;
 var ts = require('typescript');
 
-describe('taffy-jsclient', () => {
-  var taffyJsClient = require('../taffy-jsclient');
+describe('taffy-typescript-client', () => {
+  var taffyJsClient = require('../taffy-typescript-client');
 
   var baseResourceStr = `
     class BaseResource {

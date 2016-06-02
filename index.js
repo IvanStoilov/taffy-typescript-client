@@ -1,3 +1,3 @@
-var taffJsclient = require('./taffy-jsclient');
+var taffyTsClient = require('./taffy-typescript-client');
 
-module.exports = taffJsclient;
+module.exports = taffyTsClient;
