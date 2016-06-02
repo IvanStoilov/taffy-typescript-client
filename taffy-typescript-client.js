@@ -5,12 +5,13 @@ var TYPES_MAP = {
     date: 'string',
     string: 'string',
     numeric: 'number',
-    boolean: 'boolean'
+    boolean: 'boolean',
+    struct: 'Object'
 };
 
 function parseFile(fileContents, endpointName, baseUrl, callback) {
     var filteredXml = filterFunctions(fileContents);
-    
+
     parseString(filteredXml, (err, result) => {
         if (err) {
             callback(err, null);
