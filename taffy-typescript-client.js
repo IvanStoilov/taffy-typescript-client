@@ -240,7 +240,8 @@ function create(url) {
             doDelete: (data, options) => taffyTypescriptHttpService.delete(format(url, args) + encodeQueryData(data), options),
             doPost: (data, options) => taffyTypescriptHttpService.post(format(url, args), data, options),
             doPatch: (data, options) => taffyTypescriptHttpService.get(format(url, args), data, options),
-            doPut: (data, options) => taffyTypescriptHttpService.post(format(url, args), data, options)
+            doPut: (data, options) => taffyTypescriptHttpService.post(format(url, args), data, options),
+            url: url
         }
     }
 
