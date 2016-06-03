@@ -1,7 +1,7 @@
 {
   "name": "taffy-typescript-client",
-  "version": "0.0.3",
-  "description": "A node app to generate a typescript client from ColdFusion Taffy .cfc file",
+  "version": "0.0.4",
+  "description": "A node app to generate an angualrjs client and a typescript definition file from ColdFusion Taffy .cfc file",
   "main": "index.js",
   "repository": "https://github.com/IvanStoilov/taffy-jsclient.git",
   "scripts": {
