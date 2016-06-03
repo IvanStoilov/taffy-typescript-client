@@ -85,7 +85,7 @@ function writeTsdFile(fileName, tsdStr, endpoints, options) {
     var endpointsStr = endpoints.map(endpoint => `${endpoint}: I${endpoint};`).join('\n');
 
     var tsdOut = `
-        export declare module "taffy-typescript-client" {
+        declare module "taffy-typescript-client" {
           ${tsdStr}
         
           interface I${options.serviceName} {
