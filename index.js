@@ -1,3 +1,12 @@
 var taffyTsClient = require('./taffy-typescript-client');
 
-module.exports = taffyTsClient;
+if (process.argv.length < 5) {
+    console.log('Usage: node index.js [sourceFolder] [outputFolder] [serviceName]');
+    return 1;
+}
+
+taffyTsClient({
+    srcDir: process.argv[2],
+    outDir: process.argv[3],
+    serviceName: process.argv[4]
+});
