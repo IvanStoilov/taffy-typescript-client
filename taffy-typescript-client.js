@@ -191,9 +191,8 @@ function extractTsd(obj, endpointName) {
         interface I${endpointName} {
           (${resourceVars}) : {
             ${methods}
+            url: string;
           };
-        
-          url : string;
         }
     `;
 }
