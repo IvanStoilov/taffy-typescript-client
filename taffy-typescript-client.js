@@ -18,17 +18,24 @@ function main(options) {
     var clientPromises = [];
     var endpointNames = [];
 
+    if (!options.exclude) {
+        options.exclude = [];
+    }
+
     for (var i in files) {
         var fileName = path.resolve(options.srcDir, files[i]);
 
         var contents = fs.readFileSync(fileName, 'utf-8');
 
         var endpointName = path.basename(fileName, path.extname(fileName));
-        endpointNames.push(endpointName);
-        console.log(`Processing ${endpointName}`);
 
-        tsdPromises.push(generateTsd(contents, endpointName));
-        clientPromises.push(generateClient(contents, endpointName));
+        if (options.exclude.indexOf(endpointName) === -1) {
+            endpointNames.push(endpointName);
+            console.log(`Processing ${endpointName}`);
+
+            tsdPromises.push(generateTsd(contents, endpointName));
+            clientPromises.push(generateClient(contents, endpointName));
+        }
     }
 
     try {
@@ -81,8 +88,8 @@ function writeTsdFile(fileName, tsdStr, endpoints, options) {
         export declare module "taffy-typescript-client" {
           ${tsdStr}
         
-          var ${options.serviceName} : {
-            ${endpointsStr};
+          interface I${options.serviceName} {
+            ${endpointsStr}
           }
         }
 `;
