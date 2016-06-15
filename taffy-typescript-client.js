@@ -175,9 +175,10 @@ function extractTsd(obj, endpointName) {
     ////////// Methods
 
     var methods = endpoint.verbs.map(verb => {
-        var verbArgs = verb.arguments.map(arg => {
-            return format("{0}{1}: {2}", arg.name, (arg.required == 'true' ? "?" : ""), TYPES_MAP[arg.type]);
-        }).join(', ');
+        var verbArgs = verb.arguments
+            .filter(arg => endpoint.arguments.indexOf(arg.name) === -1)
+            .map(arg => format("{0}{1}: {2}", arg.name, (arg.required == 'true' ? "?" : ""), TYPES_MAP[arg.type]))
+            .join(', ');
 
         var methodName = "do" + capitalize(verb.name);
 
