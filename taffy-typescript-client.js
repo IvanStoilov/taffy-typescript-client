@@ -34,8 +34,9 @@ function main(options) {
             console.log(`Processing ${endpointName}`);
 
             tsdPromises.push(generateTsd(contents, endpointName));
-            clientPromises.push(generateClient(contents, endpointName));
         }
+
+        clientPromises.push(generateClient(contents, endpointName));
     }
 
     try {
