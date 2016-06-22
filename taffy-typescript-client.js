@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
-var parseString = require('xml2js').parseString;
+var Parser = require('xml2js').Parser;
+var parser = new Parser();
 
 var TYPES_MAP = {
     array: 'any[]',
@@ -106,18 +107,29 @@ function writeTsdFile(fileName, tsdStr, endpoints, options) {
 /**
  *
  * @param fileContents
+ * @param endpointName
  * @returns {Promise|Promise<T>}
  */
-function readFileAsJsObject(fileContents) {
+function readFileAsJsObject(fileContents, endpointName) {
     var filteredXml = filterFunctions(fileContents);
+    var errorListener = function (error) {
+        console.log({
+            message: 'Error while processing ' + endpointName,
+            error: error
+        });
+    };
 
     var promise = new Promise((resolve, reject) => {
-        parseString(filteredXml, (err, result) => {
+        parser.addListener('error', errorListener);
+
+        parser.parseString(filteredXml, (err, result) => {
             if (err) {
                 reject(err);
             } else {
                 resolve(result);
             }
+
+            parser.removeListener('error', errorListener);
         });
     });
 
@@ -131,7 +143,7 @@ function readFileAsJsObject(fileContents) {
  * @returns {Promise<TResult>|Promise.<TResult>}
  */
 function generateTsd(fileContents, endpointName) {
-    return readFileAsJsObject(fileContents)
+    return readFileAsJsObject(fileContents, endpointName)
         .then(result => extractTsd(result, endpointName));
 }
 
@@ -142,7 +154,7 @@ function generateTsd(fileContents, endpointName) {
  * @returns {Promise<TResult>|Promise.<TResult>}
  */
 function generateClient(fileContents, endpointName) {
-    return readFileAsJsObject(fileContents)
+    return readFileAsJsObject(fileContents, endpointName)
         .then(componentObj => {
             if (!componentObj.cfcomponent.$.taffy_uri) {
                 return '';
