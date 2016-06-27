@@ -250,11 +250,11 @@ function create(url) {
         var args = Array.prototype.slice.call(arguments);
         var formattedUrl = format(url, args);
         return {
-            doGet: (data, options) => taffyTypescriptHttpService.get(formattedUrl + encodeQueryData(data), options),
-            doDelete: (data, options) => taffyTypescriptHttpService.delete(formattedUrl + encodeQueryData(data), options),
-            doPost: (data, options) => taffyTypescriptHttpService.post(formattedUrl, data, options),
-            doPatch: (data, options) => taffyTypescriptHttpService.patch(formattedUrl, data, options),
-            doPut: (data, options) => taffyTypescriptHttpService.put(formattedUrl, data, options),
+            doGet: function (data, options) { return taffyTypescriptHttpService.get(formattedUrl + encodeQueryData(data), options) },
+            doDelete: function (data, options) { return taffyTypescriptHttpService.delete(formattedUrl + encodeQueryData(data), options) },
+            doPost: function (data, options) { return taffyTypescriptHttpService.post(formattedUrl, data, options) },
+            doPatch: function (data, options) { return taffyTypescriptHttpService.patch(formattedUrl, data, options) },
+            doPut: function (data, options) { return taffyTypescriptHttpService.put(formattedUrl, data, options) },
             url: formattedUrl
         }
     }
