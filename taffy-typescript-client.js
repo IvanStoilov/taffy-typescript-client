@@ -64,16 +64,19 @@ function writeClientFile(fileName, endpoints, options) {
     var createFunction = create.toString();
 
     var out = `
-        angular
-            .module('taffy-typescript-client', [])
-            .service('taffyTypescriptHttpService', function () { })
-            .service('${options.serviceName}', ['taffyTypescriptHttpService', function (taffyTypescriptHttpService) {
-                return {
-                    ${endpointsStr}
-                };
-                
-                ${createFunction}
-            }]);
+    ;(function (global, factory) {
+        typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory :
+        typeof define === 'function' && define.amd ? define(factory) :
+        global.TaffyClient = factory;
+    }(this, function (taffyTypescriptHttpService)
+    { 'use strict';
+
+    return {
+        ${endpointsStr}
+    };
+        
+        ${createFunction}
+    }));
 `;
 
     fs.writeFile(fileName, out, (err) => {
@@ -195,7 +198,7 @@ function extractTsd(obj, endpointName) {
 
         var methodName = "do" + capitalize(verb.name);
 
-        return `${methodName}: (data?: { ${verbArgs} }, options?: any) => ng.IPromise<any>`;
+        return `${methodName}: (data?: { ${verbArgs} }, options?: any) => Promise<any>`;
     }).join('\n');
 
     ////////// Interface
