@@ -65,9 +65,9 @@ function writeClientFile(fileName, endpoints, options) {
 
     var out = `
     ;(function (global, factory) {
-        typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory :
+        typeof exports === 'object' && typeof module !== 'undefined' ? module.exports.ResourceManager = factory :
         typeof define === 'function' && define.amd ? define(factory) :
-        global.TaffyClient = factory;
+        global.ResourceManager = factory;
     }(this, function (taffyTypescriptHttpService)
     { 'use strict';
 
@@ -87,15 +87,19 @@ function writeClientFile(fileName, endpoints, options) {
 }
 
 function writeTsdFile(fileName, tsdStr, endpoints, options) {
-    var endpointsStr = endpoints.map(endpoint => `${endpoint}: I${endpoint};`).join('\n');
-
     var tsdOut = `
-        declare module "taffy-typescript-client" {
-          ${tsdStr}
+        export interface TaffyHttpClientProvider<TResult> {
+          get(url: string, options: any): TResult;
+          delete(url: string, options: any): TResult;
+          put(url: string, data: any, options: any): TResult;
+          patch(url: string, data: any, options: any): TResult;
+          post(url: string, data: any, options: any): TResult;
+        }
         
-          interface I${options.serviceName} {
-            ${endpointsStr}
-          }
+        export class ResourceManager<TResult> {
+          constructor(httpClientProvider: TaffyHttpClientProvider<TResult>);
+
+          ${tsdStr}
         }
 `;
 
@@ -198,19 +202,17 @@ function extractTsd(obj, endpointName) {
 
         var methodName = "do" + capitalize(verb.name);
 
-        return `${methodName}: (data?: { ${verbArgs} }, options?: any) => Promise<any>`;
+        return `${methodName}: (data?: { ${verbArgs} }, options?: any) => TResult`;
     }).join('\n');
 
     ////////// Interface
     var resourceVars = endpoint.arguments.join(', ');
     
     return `
-        interface I${endpointName} {
-          (${resourceVars}) : {
-            ${methods}
-            url: string;
-          };
-        }
+        ${endpointName}(${resourceVars}): {
+          ${methods}
+          url: string;
+        };
     `;
 }
 function format(string, args) {
