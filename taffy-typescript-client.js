@@ -271,8 +271,8 @@ function getCreateFunction() {
         }
     
         function format(str, args) {
-            while (str.match(/{([\w\d]+)}/)) {
-                str = str.replace(/{([\w\d]+)}/, args.shift());
+            while (str.match(/{([\\w\\d]+)}/)) {
+                str = str.replace(/{([\\w\\d]+)}/, args.shift());
             }
             return str;
         }
