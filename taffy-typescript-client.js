@@ -48,35 +48,31 @@ function main(options) {
 
     Promise.all(tsdPromises)
         .then(
-            result => writeTsdFile(path.resolve(options.outDir, 'taffy-typescript-client.d.ts'), result.join('\n'), endpointNames, options),
+            result => writeTsdFile(path.resolve(options.outDir, 'taffy-typescript-client-interfaces.ts'), result.join('\n'), endpointNames, options),
             err => console.log('Error occurred while generating client', err)
         );
 
     Promise.all(clientPromises)
         .then(
-            result => writeClientFile(path.resolve(options.outDir, 'taffy-typescript-client.js'), result, options),
+            result => writeClientFile(path.resolve(options.outDir, 'taffy-typescript-client.ts'), result, options),
             err => console.log('Error occurred while generating client', err)
         );
 }
 
 function writeClientFile(fileName, endpoints, options) {
-    var endpointsStr = endpoints.filter(l => !!l).join(',\n');
-    var createFunction = create.toString();
-
+    var endpointsStr = endpoints.filter(l => !!l).join(';\n');
+    
     var out = `
-    ;(function (global, factory) {
-        typeof exports === 'object' && typeof module !== 'undefined' ? module.exports.ResourceManager = factory :
-        typeof define === 'function' && define.amd ? define(factory) :
-        global.ResourceManager = factory;
-    }(this, function (taffyTypescriptHttpService)
-    { 'use strict';
+    import * as Interfaces from './taffy-typescript-client-interfaces';
+    
+    export class ResourceManager<TResult> {
+        constructor(private taffyTypescriptHttpService) {
+        }
 
-    return {
         ${endpointsStr}
-    };
+    }
         
-        ${createFunction}
-    }));
+    ${getCreateFunction()}
 `;
 
     fs.writeFile(fileName, out, (err) => {
@@ -89,19 +85,15 @@ function writeClientFile(fileName, endpoints, options) {
 function writeTsdFile(fileName, tsdStr, endpoints, options) {
     var tsdOut = `
         export interface TaffyHttpClientProvider<TResult> {
-          get(url: string, options: any): TResult;
-          delete(url: string, options: any): TResult;
-          put(url: string, data: any, options: any): TResult;
-          patch(url: string, data: any, options: any): TResult;
-          post(url: string, data: any, options: any): TResult;
+            get(url: string, options: any): TResult;
+            delete(url: string, options: any): TResult;
+            put(url: string, data: any, options: any): TResult;
+            patch(url: string, data: any, options: any): TResult;
+            post(url: string, data: any, options: any): TResult;    
         }
-        
-        export class ResourceManager<TResult> {
-          constructor(httpClientProvider: TaffyHttpClientProvider<TResult>);
 
-          ${tsdStr}
-        }
-`;
+        ${tsdStr}
+    `;
 
     fs.writeFile(fileName, tsdOut, (err) => {
         if (err) {
@@ -168,7 +160,7 @@ function generateClient(fileContents, endpointName) {
             }
 
             var url = (componentObj.cfcomponent.$.taffy_uri).replace('//', '/');
-            return `${endpointName}: create("${url}")`;
+            return `${endpointName}: Interfaces.${endpointName}<TResult> = create<TResult>(this.taffyTypescriptHttpService, "${cleanUpUrlParam(url)}")`;
         });
 }
 
@@ -206,13 +198,15 @@ function extractTsd(obj, endpointName) {
     }).join('\n');
 
     ////////// Interface
-    var resourceVars = endpoint.arguments.join(', ');
+    var resourceVars = endpoint.arguments.map(a => cleanUpUrlParam(a)).join(', ');
     
     return `
-        ${endpointName}(${resourceVars}): {
-          ${methods}
-          url: string;
-        };
+        export interface ${endpointName}<TResult> {
+            (${resourceVars}): {
+                ${methods}
+                url: string;
+            }
+        }
     `;
 }
 function format(string, args) {
@@ -247,38 +241,43 @@ function filterFunctions(fileContents) {
         .join("\n");
 }
 
+function cleanUpUrlParam(param) {
+    return param.replace(':.+', '');
+}
+
 /** client code **/
-var taffyTypescriptHttpService;
-
-function create(url) {
-    return function () {
-        var args = Array.prototype.slice.call(arguments);
-        var formattedUrl = format(url, args);
-        return {
-            doGet: function (data, options) { return taffyTypescriptHttpService.get(formattedUrl + encodeQueryData(data), options) },
-            doDelete: function (data, options) { return taffyTypescriptHttpService.delete(formattedUrl + encodeQueryData(data), options) },
-            doPost: function (data, options) { return taffyTypescriptHttpService.post(formattedUrl, data, options) },
-            doPatch: function (data, options) { return taffyTypescriptHttpService.patch(formattedUrl, data, options) },
-            doPut: function (data, options) { return taffyTypescriptHttpService.put(formattedUrl, data, options) },
-            url: formattedUrl
+function getCreateFunction() {
+    return `
+    function create<TResult>(taffyTypescriptHttpService, url) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            var formattedUrl = format(url, args);
+            return {
+                doGet: function (data, options): TResult { return taffyTypescriptHttpService.get(formattedUrl + encodeQueryData(data), options) },
+                doDelete: function (data, options): TResult { return taffyTypescriptHttpService.delete(formattedUrl + encodeQueryData(data), options) },
+                doPost: function (data, options): TResult { return taffyTypescriptHttpService.post(formattedUrl, data, options) },
+                doPatch: function (data, options): TResult { return taffyTypescriptHttpService.patch(formattedUrl, data, options) },
+                doPut: function (data, options): TResult { return taffyTypescriptHttpService.put(formattedUrl, data, options) },
+                url: formattedUrl
+            }
         }
-    }
-
-    function encodeQueryData(data)
-    {
-        var ret = [];
-        for (var d in data) {
-            ret.push(encodeURIComponent(d) + "=" + encodeURIComponent(data[d]));
+    
+        function encodeQueryData(data) {
+            var ret = [];
+            for (var d in data) {
+                ret.push(encodeURIComponent(d) + "=" + encodeURIComponent(data[d]));
+            }
+            return (ret.length > 0) ? "?" + ret.join("&") : '';
         }
-        return (ret.length > 0) ? "?" + ret.join("&") : '';
-    }
-
-    function format(str, args) {
-        while (str.match(/{([\w\d]+)}/)) {
-            str = str.replace(/{([\w\d]+)}/, args.shift());
+    
+        function format(str, args) {
+            while (str.match(/{([\w\d]+)}/)) {
+                str = str.replace(/{([\w\d]+)}/, args.shift());
+            }
+            return str;
         }
-        return str;
-    }
+    }    
+`;
 }
 
 module.exports = main;
