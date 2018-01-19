@@ -65,7 +65,7 @@ function writeClientFile(fileName, endpoints, options) {
     var out = `
     import * as Interfaces from './taffy-typescript-client-interfaces';
     
-    export class ResourceManager<TResult> {
+    export class ${options.serviceName}<TResult> {
         constructor(private taffyTypescriptHttpService) {
         }
 
