@@ -66,7 +66,7 @@ function writeClientFile(fileName, endpoints, options) {
     import * as Interfaces from './taffy-typescript-client-interfaces';
     
     export class ${options.serviceName}<TResult> {
-        constructor(private taffyTypescriptHttpService) {
+        constructor(protected taffyTypescriptHttpService: Interfaces.TaffyHttpClientProvider<TResult>) {
         }
 
         ${endpointsStr}
