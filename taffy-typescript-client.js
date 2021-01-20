@@ -198,7 +198,7 @@ function extractTsd(obj, endpointName) {
     }).join('\n');
 
     ////////// Interface
-    var resourceVars = endpoint.arguments.map(a => cleanUpUrlParam(a)).join(', ');
+    var resourceVars = endpoint.arguments.map(a => cleanUpUrlParam(a) + ': string | number').join(', ');
     
     return `
         export interface ${endpointName}<TResult> {
@@ -248,21 +248,21 @@ function cleanUpUrlParam(param) {
 /** client code **/
 function getCreateFunction() {
     return `
-    function create<TResult>(taffyTypescriptHttpService, url) {
+    function create<TResult>(taffyTypescriptHttpService: any, url: string) {
         return function () {
             var args = Array.prototype.slice.call(arguments);
             var formattedUrl = format(url, args);
             return {
-                doGet: function (data, options): TResult { return taffyTypescriptHttpService.get(formattedUrl + encodeQueryData(data), options) },
-                doDelete: function (data, options): TResult { return taffyTypescriptHttpService.delete(formattedUrl + encodeQueryData(data), options) },
-                doPost: function (data, options): TResult { return taffyTypescriptHttpService.post(formattedUrl, data, options) },
-                doPatch: function (data, options): TResult { return taffyTypescriptHttpService.patch(formattedUrl, data, options) },
-                doPut: function (data, options): TResult { return taffyTypescriptHttpService.put(formattedUrl, data, options) },
+                doGet: function (data: any, options: any): TResult { return taffyTypescriptHttpService.get(formattedUrl + encodeQueryData(data), options) },
+                doDelete: function (data: any, options: any): TResult { return taffyTypescriptHttpService.delete(formattedUrl + encodeQueryData(data), options) },
+                doPost: function (data: any, options: any): TResult { return taffyTypescriptHttpService.post(formattedUrl, data, options) },
+                doPatch: function (data: any, options: any): TResult { return taffyTypescriptHttpService.patch(formattedUrl, data, options) },
+                doPut: function (data: any, options: any): TResult { return taffyTypescriptHttpService.put(formattedUrl, data, options) },
                 url: formattedUrl
             }
         }
     
-        function encodeQueryData(data) {
+        function encodeQueryData(data: any) {
             var ret = [];
             for (var d in data) {
                 ret.push(encodeURIComponent(d) + "=" + encodeURIComponent(data[d]));
@@ -270,7 +270,7 @@ function getCreateFunction() {
             return (ret.length > 0) ? "?" + ret.join("&") : '';
         }
     
-        function format(str, args) {
+        function format(str: string, args: any) {
             while (str.match(/{([\\w\\d]+)}/)) {
                 str = str.replace(/{([\\w\\d]+)}/, args.shift());
             }
