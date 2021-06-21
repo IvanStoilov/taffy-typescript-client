@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": "https://github.com/IvanStoilov/taffy-jsclient.git",
   "scripts": {
-    "test": "node ./node_modules/mocha/bin/mocha",
+    "test": "mocha",
     "build": "node index.js"
   },
   "keywords": [
@@ -20,6 +20,7 @@
     "chai": "^3.5.0",
     "fs": "0.0.2",
     "mocha": "^2.5.3",
+    "rimraf": "^3.0.2",
     "typescript": "^1.8.10"
   },
   "dependencies": {

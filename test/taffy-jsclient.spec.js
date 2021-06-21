@@ -1,43 +1,61 @@
 var fs = require('fs');
 var expect = require('chai').expect;
 var ts = require('typescript');
+var rimraf = require('rimraf');
 
 describe('taffy-typescript-client', () => {
   var taffyJsClient = require('../taffy-typescript-client');
 
-  var baseResourceStr = `
-    class BaseResource {
-      protected encodeQueryData(data) {};
-      protected get(url, options? : any) {}
-      protected post(url, data? : any, options? : any) {}
-    }
-  `;
-
   var clientStr;
   var TestResource;
 
-  beforeEach('', (done) => {
+  before('', (done) => {
     var fileContents = fs.readFileSync('./test/fixtures/fixture2.cfc', 'utf8');
-    taffyJsClient(fileContents, 'TestResource', 'http://example.com', (err, jsClient) => {
-      clientStr = jsClient;
-      done();
+    var options = {
+      srcDir: './test/fixtures',
+      outDir: './test/out',
+      serviceName: 'TestClient'
+    };
+
+    rimraf('./test/out', () => {
+      taffyJsClient(options);
+      getContents();
+    });
+
+    function getContents() {
+      try {
+        clientStr = fs.readFileSync('./test/out/taffy-typescript-client.ts', 'utf8');
+        done();
+      } catch (err) {
+        setTimeout(getContents, 100);
+      }
+    }
+  });
+
+  it('should return some client', () => {
+    expect(clientStr).to.be.ok;
+  });
+
+  it('should include all the endpoints', () => {
+    [
+      `fixture1: Interfaces.fixture1<TResult> = create<TResult>(this.taffyTypescriptHttpService, "/admin/sd/stats")`,
+      `fixture2: Interfaces.fixture2<TResult> = create<TResult>(this.taffyTypescriptHttpService, "/app/{companyId}/sd/tickets/{ticketId}/comments")`,
+      `fixture3: Interfaces.fixture3<TResult> = create<TResult>(this.taffyTypescriptHttpService, "/app/{companyId}/em/users/{userId}/presences/{date}")`
+    ].forEach(endpoint => {
+        expect(clientStr).to.contain(endpoint);
     });
   });
 
-  it('should return a some client', () => {
-    expect(clientStr).to.be.ok;
-  });
-  
   it('should return a client that compiles', () => {
-    var clientJs = ts.transpile(clientStr);
-    expect(clientJs).to.be.ok;
+    var js = ts.createProgram(['./test/out/taffy-typescript-client-interfaces.ts', './test/out/taffy-typescript-client.ts'], {});
+    var problems = js.getSemanticDiagnostics();
+    var errors = problems.map(p => `"${p.messageText}" in ${p.file.fileName}`);
+    expect(errors).to.deep.equal([]);
   });
 
   it('should return a client that compiles and is valid', () => {
-    var js = ts.transpile(baseResourceStr + clientStr);
-
+    var js = ts.transpile(clientStr);
     eval(js.replace('"use strict";', ''));
-
-    expect(TestResource).to.be.ok;
+    expect(TestClient).to.be.ok;
   });
 });

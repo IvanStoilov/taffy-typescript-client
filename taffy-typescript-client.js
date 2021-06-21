@@ -43,7 +43,7 @@ function main(options) {
     try {
         fs.statSync(options.outDir);
     } catch (e) {
-        fs.mkdir(options.outDir);
+        fs.mkdirSync(options.outDir);
     }
 
     Promise.all(tsdPromises)
@@ -159,9 +159,23 @@ function generateClient(fileContents, endpointName) {
                 return '';
             }
 
-            var url = (componentObj.cfcomponent.$.taffy_uri).replace('//', '/');
+            var url = getUrlWithoutRegexp(componentObj.cfcomponent.$.taffy_uri);
             return `${endpointName}: Interfaces.${endpointName}<TResult> = create<TResult>(this.taffyTypescriptHttpService, "${cleanUpUrlParam(url)}")`;
         });
+}
+
+function getUrlWithoutRegexp(url) {
+    return url
+        .replace('//', '/')
+        .split('/')
+        .map(part => {
+            if (startsWithBracket(part)) {
+                return `{${stripRegexFromArg(stripBrackets(part))}}`;
+            }
+
+            return part;
+        })
+        .join('/');
 }
 
 function extractTsd(obj, endpointName) {
@@ -174,7 +188,7 @@ function extractTsd(obj, endpointName) {
     var endpoint = {
         name: endpointName,
         url: component.$.taffy_uri,
-        arguments: component.$.taffy_uri.split('/').filter(startsWithBracket).map(stripBrackets),
+        arguments: component.$.taffy_uri.split('/').filter(startsWithBracket).map(stripBrackets).map(stripRegexFromArg),
         verbs: component.cffunction
             .filter(func => func.$.access === 'public')
             .map(func => ({
@@ -223,6 +237,10 @@ function startsWithBracket(str) {
 
 function stripBrackets(item) {
     return item.replace(/[\{\}]/g, '');
+}
+
+function stripRegexFromArg(arg) {
+    return arg.split(':')[0];
 }
 
 function capitalize(str) {
